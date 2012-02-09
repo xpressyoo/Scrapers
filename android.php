@@ -3,7 +3,7 @@
 /***********************************************************************
 == Author: Florian Bersier
 == Organization: Oxford Internet Institute, University of Oxford
-== MIT Licence
+== MIT License
 
 Copyright (c) 2012 Florian Bersier
 
