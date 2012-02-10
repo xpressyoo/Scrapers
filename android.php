@@ -3,7 +3,7 @@
 /***********************************************************************
 == Author: Florian Bersier
 == Organization: Oxford Internet Institute, University of Oxford
-== MIT License
+== MIT Licence
 
 Copyright (c) 2012 Florian Bersier
 
@@ -70,11 +70,12 @@ tbody{font-size:10px;text-align:center}tbody td.non{text-align:left}
 //GET URL
 $url00 = "https://market.android.com/";
 $url0 = "https://market.android.com/details?id=apps_topselling_paid";
+//https://market.android.com/details?id=apps_topselling_free&feature=top-free
 //https://market.android.com/details?id=apps_topselling_paid&start=24&num=24
 
 //AUTO LOOP DETERMINING THE RANGE OF PAGES TO SCRAPE
 
-foreach(range(0, 48, 24) as $x) {
+foreach(range(0, 480, 24) as $x) {
 
 $frompge = $x;
 $pages = 1; //For info only
@@ -131,7 +132,7 @@ foreach ( $links as $item ) {
 	$newDom->appendChild($newDom->importNode($item,true));
  
 	$xpath = new DOMXPath( $newDom );
-        $cleaner = array(" Buy", "UKÂ£", "Rating: ","stars (Above average)", ")", ","," ");
+        $cleaner = array(" Buy", "UKÂ£", "Rating: ","Above", ")", ",", "Average", "average", " ", "stars", "Below", "(");
         $cleanhref = array("&feature=apps_topselling_paid", "/details?");
 
 //ORDINAL VALUE
@@ -148,6 +149,7 @@ foreach ( $links as $item ) {
 
 //PRICE
 	$p = str_replace($cleaner,"",trim($xpath->query("//span[@class='buy-button-price']")->item(0)->nodeValue));
+			if ($p == "Install"){$p = 0;}
 
 //RETRIEVE STARS
 	$grade = str_replace($cleaner,"",trim($xpath->query("//div[contains(@class, 'ratings goog-inline-block')]/@title")->item(0)->nodeValue));
@@ -248,11 +250,11 @@ foreach ( $links4 as $item ) {
 //////////////////////////////// ALGORITHM PAGES SCRAPING
 
 if ($nbpages > 11){
-	$scraper = 10; 		//Nb of pages to scrape on Android Marketplace
+	$scraper = 9; 		//Nb of pages to scrape on Android Marketplace
 }
 
 else {	
-	$scraper = $nbpages;  	//Nb of pages to scrape on Android Marketplace
+	$scraper = $nbpages-1;  //Nb of pages to scrape on Android Marketplace
 }
 
 /////////////////////// Parallel cURL Process
@@ -302,7 +304,8 @@ curl_multi_close($mh3);
 //print_r($htmlz,false);
 
 //INITIALIZATION
-$add = 0;		
+$add = 0;
+	
 
 // Parse the HTML information and return the results.
 for ($e = 0; $e <= $scraper; $e++) {
@@ -320,15 +323,16 @@ foreach ( $linkss as $item ) {
 	$newDoms->appendChild($newDoms->importNode($item,true));
  
 	$xpaths = new DOMXPath( $newDoms ); 
-	$review = trim($xpaths->query("//p[@class='review-text']")->item(0)->nodeValue);
-	$return[] = array($review,);
+	$review = trim($xpaths->query("//p[@class='review-text']")->item(0)->nodeValue); 	//REVIEW'S TEXT
+	$review2 = trim($xpaths->query("//h4[@class='review-title']")->item(0)->nodeValue);	//REVIEW'S TITLE
+	$return[] = array($review,$review2);
 } 
 
 // REVIEWS ARRAY
-//print_r($return[0],false);
-//$count0 = count($return,COUNT_RECURSIVE);
-	$count = sizeof($return);
-	$nbreviews = (($scraper-1)*10) + $count;
+//print_r($return,false);
+
+	$count = sizeof($return);		//SIZE OF ARRAY
+	$nbreviews = ($scraper*10) + $count; 	//COMPUTE THE NUMBER OF REVIEWS
 	$return = print_r($return,true);
 	$cleanreviews = array("1", "2", "3", "4", "5", "6", "7", "8", "9", "0", " ","[0]","Array","(",")","=","&gt;","[","]",">");
 	$return = str_replace($cleanreviews, "", $return);
